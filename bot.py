@@ -1,14 +1,12 @@
 import os
-import re
-import google.generativeai as genai
+from groq import Groq
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, filters, ContextTypes
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "8692608647:AAEVNoNYpj1K74hc5Ac0HfdM7aQI6UWVfyE")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyB9yk4PEPaH5vdV3wh5oVtEY_1TOjHPEZU")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
 
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-2.0-flash")
+client = Groq(api_key=GROQ_API_KEY)
 
 SYSTEM_PROMPT = """Você formata textos de promoção de afiliados para WhatsApp.
 
@@ -41,16 +39,22 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def formatar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     texto = update.message.text.strip()
-
     if not texto:
         return
 
     await update.message.reply_text("Formatando... ⏳")
 
     try:
-        prompt = f"{SYSTEM_PROMPT}\n\nTexto da promoção:\n{texto}"
-        response = model.generate_content(prompt)
-        post = response.text.strip()
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": texto}
+            ],
+            max_tokens=300,
+            temperature=0.1
+        )
+        post = response.choices[0].message.content.strip()
         await update.message.reply_text(post)
     except Exception as e:
         await update.message.reply_text(
@@ -64,7 +68,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, formatar))
     print("Bot rodando...")
-    app.run_polling()
+    app.run_polling(drop_pending_updates=True)
 
 
 if __name__ == "__main__":
