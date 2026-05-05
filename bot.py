@@ -8,7 +8,7 @@ TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "8692608647:AAEVNoNYpj1K74hc5A
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyB9yk4PEPaH5vdV3wh5oVtEY_1TOjHPEZU")
 
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.0-flash")
 
 SYSTEM_PROMPT = """Você formata textos de promoção de afiliados para WhatsApp.
 
